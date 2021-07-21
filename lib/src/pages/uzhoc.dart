@@ -320,9 +320,8 @@ class _UzhocPageState extends State<UzhocPage> {
         ),
         Flexible(
           child: TextField(
-            keyboardType: TextInputType.number,
-            
             controller: _eleAntRx,
+            keyboardType: TextInputType.number,
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20.0),
