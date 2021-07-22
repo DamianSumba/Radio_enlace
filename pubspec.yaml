@@ -31,6 +31,9 @@ dependencies:
   path_provider: ^2.0.2
   math_expressions: ^2.1.1
   provider: ^5.0.0
+  google_maps_flutter: ^2.0.6
+  permission_handler: ^8.1.4
+  geolocator: ^7.3.0
 
   #qflite: ^1.3.0
 

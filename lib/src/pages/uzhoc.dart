@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'package:provider/provider.dart';
 import 'package:radio_enlace/providers/transforarRad_provider.dart';
@@ -87,6 +88,7 @@ class _UzhocPageState extends State<UzhocPage> {
 
   //varible dropItem
   String? _valorSelecionado = 'selecione Nodo';
+  final _initialcamaraPosition = CameraPosition(target: LatLng(0, 0), zoom: 15);
 
   List _nodosList = [
     'selecione Nodo',
@@ -234,10 +236,25 @@ class _UzhocPageState extends State<UzhocPage> {
                   Flexible(child: _crearBotonCancelar(context))
                 ],
               ),
+              _ubicaicionClinte()
             ],
           )
         ],
       ),
+    );
+  }
+
+  Widget _ubicaicionClinte() {
+    return Container(
+      color: Colors.amber,
+      width: 450,
+      height: 550,
+      child: GoogleMap(
+        initialCameraPosition: _initialcamaraPosition,
+        // myLocationButtonEnabled: true,
+        //zoomControlsEnabled: true,
+      ),
+      //GoogleMap(initialCameraPosition: _initialcamaraPosition);
     );
   }
 
