@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'package:provider/provider.dart';
 import 'package:radio_enlace/providers/transforarRad_provider.dart';
@@ -84,16 +85,20 @@ class _UzhocPageState extends State<UzhocPage> {
   double? xrxg;
   double? yrxg;
 
+  //varible dropItem
+  String? _valorSelecionado = 'selecione Nodo';
+
+  List _nodosList = [
+    'selecione Nodo',
+    'Oficina ISP',
+    'Nodo Chocarsi',
+    'Nodo Uzhoc'
+  ];
+
   @override
   Widget build(BuildContext context) {
-    _calculosLatutud();
-    _calculosLongitud();
-
-    altTxKte = 2985;
-    altTxAntKte = 20;
-
-    altTx.text = altTxKte.toString();
-    altTxAnt.text = altTxAntKte.toString();
+    //_calculosLatutud();
+    //_calculosLongitud();
 
     return Scaffold(
       appBar: AppBar(
@@ -115,6 +120,7 @@ class _UzhocPageState extends State<UzhocPage> {
         children: [
           Column(
             children: [
+              _crearDrowButton(),
               Divider(),
               Text(
                 'Datos del Nodo',
@@ -232,6 +238,85 @@ class _UzhocPageState extends State<UzhocPage> {
           )
         ],
       ),
+    );
+  }
+
+  List<DropdownMenuItem<String>>? getOpcionesNodos() {
+    List<DropdownMenuItem<String>> lista = new List.of([]);
+    _nodosList.forEach((element) {
+      lista.add(DropdownMenuItem(
+        child: Text(element),
+        value: element,
+      ));
+    });
+    return lista;
+  }
+
+  Widget _crearDrowButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Selecionar Nodo',
+          style: TextStyle(fontStyle: FontStyle.italic),
+        ),
+        SizedBox(
+          width: 5,
+        ),
+        Flexible(
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            width: 175,
+            height: 50,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(15)),
+                border: Border.all(color: Colors.blueAccent, width: 2)),
+            child: DropdownButton(
+              style: TextStyle(fontSize: 15, color: Colors.blueAccent),
+              icon: Icon(
+                Icons.list_alt_sharp,
+                color: Colors.blueAccent,
+                size: 30,
+              ),
+              dropdownColor: Colors.yellow,
+              value: _valorSelecionado,
+              items: getOpcionesNodos(),
+              onChanged: (String? opt) {
+                setState(() {
+                  _valorSelecionado = opt;
+
+                  if (opt == 'Nodo Uzhoc') {
+                    print('holaaaa iff');
+                    _calculosLatutud();
+                    _calculosLongitud();
+                    altTxKte = 2985;
+                    altTxAntKte = 20;
+                    altTx.text = altTxKte.toString();
+                    altTxAnt.text = altTxAntKte.toString();
+                  } else {
+                    if (opt == 'Nodo Chocarsi') {
+                      print('holaaaa central');
+                      _calculosLatutudNodoChocarsi();
+                      _calculosLongitudNodoChocarsi();
+                      altTxKte = 2751;
+                      altTxAntKte = 20;
+                      altTx.text = altTxKte.toString();
+                      altTxAnt.text = altTxAntKte.toString();
+                    } else {
+                      _calculosLatutudNodoOficina();
+                      _calculosLongitudNodoOficina();
+                      altTxKte = 2690;
+                      altTxAntKte = 20;
+                      altTx.text = altTxKte.toString();
+                      altTxAnt.text = altTxAntKte.toString();
+                    }
+                  }
+                });
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -799,6 +884,98 @@ class _UzhocPageState extends State<UzhocPage> {
     print(xtx);
   }
 
+  _calculosLatutudNodoChocarsi() {
+    //final horasLatitud = TextEditingController();
+    //final minutosLatitu = TextEditingController();
+    //final segundosLatit = TextEditingController();
+//
+    //final horasLongitud = TextEditingController();
+    //final minutosLongitud = TextEditingController();
+    //final segundosLongitud = TextEditingController();
+
+    horaslatitudkte = 2;
+    minutoslatitudkte = 51;
+    segudoslatitudkte = 32.43;
+
+    horasLatitud.text = horaslatitudkte.toString();
+    minutosLatitu.text = minutoslatitudkte.toString();
+    segundosLatit.text = segudoslatitudkte.toString();
+
+    xtx = horaslatitudkte! +
+        (minutoslatitudkte! / 60) +
+        (segudoslatitudkte! / 3600);
+
+    print(xtx);
+
+    xtxg = xtx;
+
+    if (_sur == true) {
+      xtxg = xtxg!;
+    } else {
+      xtxg = xtxg! * (-1);
+    }
+    print('latud nodo Chocarsi');
+    print(xtxg);
+
+    //if (_norte == true) {
+    //  xtx = (xtx! * (pi)) / 180;
+    //} else {
+    xtx = (xtx! * (-pi)) / 180;
+    //}
+    //double totalLt = horasLt + minutosLt;
+    //sur, este negativos
+    print('latitud');
+    print('--------------');
+
+    print(xtx);
+  }
+
+  _calculosLatutudNodoOficina() {
+    //final horasLatitud = TextEditingController();
+    //final minutosLatitu = TextEditingController();
+    //final segundosLatit = TextEditingController();
+//
+    //final horasLongitud = TextEditingController();
+    //final minutosLongitud = TextEditingController();
+    //final segundosLongitud = TextEditingController();
+
+    horaslatitudkte = 2;
+    minutoslatitudkte = 53;
+    segudoslatitudkte = 18.91;
+
+    horasLatitud.text = horaslatitudkte.toString();
+    minutosLatitu.text = minutoslatitudkte.toString();
+    segundosLatit.text = segudoslatitudkte.toString();
+
+    xtx = horaslatitudkte! +
+        (minutoslatitudkte! / 60) +
+        (segudoslatitudkte! / 3600);
+
+    print(xtx);
+
+    xtxg = xtx;
+
+    if (_sur == true) {
+      xtxg = xtxg!;
+    } else {
+      xtxg = xtxg! * (-1);
+    }
+    print(' latud nodo Oficina');
+    print(xtxg);
+
+    //if (_norte == true) {
+    //  xtx = (xtx! * (pi)) / 180;
+    //} else {
+    xtx = (xtx! * (-pi)) / 180;
+    //}
+    //double totalLt = horasLt + minutosLt;
+    //sur, este negativos
+    print('latitud');
+    print('--------------');
+
+    print(xtx);
+  }
+
   _calculosLongitud() {
     horaslongitudkte = 78;
     minutoslongitudkte = 52;
@@ -820,6 +997,72 @@ class _UzhocPageState extends State<UzhocPage> {
       ytxg = ytxg! * (-1);
     }
     print('hhhhhhhh longitud');
+    print(ytxg);
+
+    //if (_este == true) {
+    //  ytx = (ytx! * (pi)) / 180;
+    //} else {
+    //  ytx = (ytx! * (-pi)) / 180;
+    //}
+    ytx = (ytx! * (-pi)) / 180;
+    print('longitud');
+    print(ytx);
+  }
+
+  _calculosLongitudNodoOficina() {
+    horaslongitudkte = 78;
+    minutoslongitudkte = 52;
+    segundoslongitudkte = 38.74;
+
+    horasLongitud.text = horaslongitudkte.toString();
+    minutosLongitud.text = minutoslongitudkte.toString();
+    segundosLongitud.text = segundoslongitudkte.toString();
+
+    ytx = horaslongitudkte! +
+        (minutoslongitudkte! / 60) +
+        (segundoslongitudkte! / 3600);
+
+    ytxg = ytx;
+
+    if (_oeste == true) {
+      ytxg = ytxg!;
+    } else {
+      ytxg = ytxg! * (-1);
+    }
+    print('hhhhhhhh longitud');
+    print(ytxg);
+
+    //if (_este == true) {
+    //  ytx = (ytx! * (pi)) / 180;
+    //} else {
+    //  ytx = (ytx! * (-pi)) / 180;
+    //}
+    ytx = (ytx! * (-pi)) / 180;
+    print('longitud');
+    print(ytx);
+  }
+
+  _calculosLongitudNodoChocarsi() {
+    horaslongitudkte = 78;
+    minutoslongitudkte = 51;
+    segundoslongitudkte = 57.66;
+
+    horasLongitud.text = horaslongitudkte.toString();
+    minutosLongitud.text = minutoslongitudkte.toString();
+    segundosLongitud.text = segundoslongitudkte.toString();
+
+    ytx = horaslongitudkte! +
+        (minutoslongitudkte! / 60) +
+        (segundoslongitudkte! / 3600);
+
+    ytxg = ytx;
+
+    if (_oeste == true) {
+      ytxg = ytxg!;
+    } else {
+      ytxg = ytxg! * (-1);
+    }
+    print('longitud nodo Chocarsi');
     print(ytxg);
 
     //if (_este == true) {
