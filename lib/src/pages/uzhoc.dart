@@ -1,11 +1,19 @@
+import 'dart:async';
+
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'package:provider/provider.dart';
 import 'package:radio_enlace/providers/transforarRad_provider.dart';
+import 'package:geolocator_platform_interface/geolocator_platform_interface.dart';
+import 'package:geolocator/geolocator.dart' as geo;
+import 'package:geolocator/geolocator.dart' as Geolocation;
+import 'package:location/location.dart';
 
 class UzhocPage extends StatefulWidget {
   UzhocPage({Key? key}) : super(key: key);
@@ -88,7 +96,6 @@ class _UzhocPageState extends State<UzhocPage> {
 
   //varible dropItem
   String? _valorSelecionado = 'selecione Nodo';
-  final _initialcamaraPosition = CameraPosition(target: LatLng(0, 0), zoom: 15);
 
   List _nodosList = [
     'selecione Nodo',
@@ -97,11 +104,21 @@ class _UzhocPageState extends State<UzhocPage> {
     'Nodo Uzhoc'
   ];
 
+  //variables localisacion
+
+  String latitudCli = '';
+  String longitudCli = '';
+
+  final _initialcamaraPosition =
+      CameraPosition(target: LatLng(-2.892183, -79.0243997), zoom: 15);
+  Completer<GoogleMapController> _controller = Completer();
+
+  var location = new Location();
+
+  LocationData? userLocation;
+
   @override
   Widget build(BuildContext context) {
-    //_calculosLatutud();
-    //_calculosLongitud();
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Nodo Uzhoc'),
@@ -129,6 +146,28 @@ class _UzhocPageState extends State<UzhocPage> {
                 style: TextStyle(
                   fontSize: 20,
                 ),
+              ),
+              Row(
+                children: [
+                  userLocation == null ? CircularProgressIndicator() : Text(''),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: RaisedButton(
+                      onPressed: () {
+                        _getLocation().then((value) {
+                          setState(() {
+                            userLocation = value;
+                          });
+                        });
+                      },
+                      color: Colors.blue,
+                      child: Text(
+                        "Get Location",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               Divider(),
               Text('LATITUD'),
@@ -236,7 +275,7 @@ class _UzhocPageState extends State<UzhocPage> {
                   Flexible(child: _crearBotonCancelar(context))
                 ],
               ),
-              _ubicaicionClinte()
+              // _ubicaicionClinte()
             ],
           )
         ],
@@ -251,10 +290,11 @@ class _UzhocPageState extends State<UzhocPage> {
       height: 550,
       child: GoogleMap(
         initialCameraPosition: _initialcamaraPosition,
-        // myLocationButtonEnabled: true,
-        //zoomControlsEnabled: true,
+        myLocationButtonEnabled: true,
+        myLocationEnabled: true,
+        zoomGesturesEnabled: true,
+        zoomControlsEnabled: true,
       ),
-      //GoogleMap(initialCameraPosition: _initialcamaraPosition);
     );
   }
 
@@ -1284,5 +1324,18 @@ class _UzhocPageState extends State<UzhocPage> {
     print(acimutTx);
     acimut_Tx.text = acimutTx.toString() + '°';
  */
+  }
+
+  Future<LocationData> _getLocation() async {
+    LocationData _currentLocation;
+    //var currentLocation = <String, double>{};
+    try {
+      _currentLocation = await location.getLocation();
+      print('###############3');
+      print(_currentLocation);
+    } catch (e) {
+      _currentLocation = null!;
+    }
+    return _currentLocation;
   }
 }
