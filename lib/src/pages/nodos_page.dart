@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:location/location.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'package:provider/provider.dart';
 import 'package:radio_enlace/providers/transforarRad_provider.dart';
@@ -44,6 +45,15 @@ class _NodosPageState extends State<NodosPage> {
   final clientesminutosLongitud = TextEditingController();
   final clientessegundosLongitud = TextEditingController();
   final respuestaDistancia = TextEditingController();
+
+  final _eleTx = TextEditingController();
+  final _eleAntx = TextEditingController();
+  final _eleRx = TextEditingController();
+  final _eleAntRx = TextEditingController();
+  final _acimut_Tx = TextEditingController();
+  final _acimut_Rx = TextEditingController();
+  final _anguloElev = TextEditingController();
+
   final eleTx = TextEditingController();
   final eleAntx = TextEditingController();
   final eleRx = TextEditingController();
@@ -74,20 +84,65 @@ class _NodosPageState extends State<NodosPage> {
   double? xrxg;
   double? yrxg;
 
+  double? xtx1;
+  double? ytx1;
+
   //variables slider
   double cambiarPotencia = 27;
   double gananciaAntTr = 19;
   double gananciaAntRX = 16;
   double sencilidad = 80;
 
+  //
+  double? elevTx;
+  double? elevAnt;
+
+  double? altTxKte;
+  double? altTxAntKte;
+  double? altRxKte;
+  double? altrxAntKte;
+
+  double? horaslatitudkte;
+  double? minutoslatitudkte;
+  double? segudoslatitudkte;
+  double? horaslongitudkte;
+  double? minutoslongitudkte;
+  double? segundoslongitudkte;
+
+  final altTx = TextEditingController();
+  final altTxAnt = TextEditingController();
+  final altRx = TextEditingController();
+  final altrxAnt = TextEditingController();
+
   //margen elnalce
   double? margenEnl;
 
+  //variable obtener ubicacion
+  var location = new Location();
+  LocationData? userLocation;
+  LocationData? _currentLocation;
+  String _longData = '';
+  String _latData = '';
+  String _altitudData = '';
+
+  final ubilatituCli = TextEditingController();
+  final ubilongitudCli = TextEditingController();
+  final ubialtudCli = TextEditingController();
+
+  //variales dropItem selección
+  String? _valorSelecionado = 'selecione Nodo';
+
+  List _nodosList = [
+    'selecione Nodo',
+    'Oficina ISP',
+    'Nodo Chocarsi',
+    'Nodo Uzhoc'
+  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Nuevo Nodo'),
+        title: Text('Ingreso Datos'),
       ),
       body: _crearBody(context),
     );
@@ -105,6 +160,7 @@ class _NodosPageState extends State<NodosPage> {
         children: [
           Column(
             children: [
+              _crearDrowButton(),
               Text(
                 'Datos del Nodo',
                 style: TextStyle(
@@ -143,30 +199,34 @@ class _NodosPageState extends State<NodosPage> {
                 style: TextStyle(fontSize: 20),
               ),
               SizedBox(
+                height: 30,
+              ),
+              _ubicacion(),
+              SizedBox(
                 height: 20,
-              ),
-              Text('LATITUD'),
-              Divider(),
-              _latitudClinte(),
-              Row(
-                children: <Widget>[
-                  Text('Norte'),
-                  Flexible(child: _crearClinteCheckNorte()),
-                  Text('Sur'),
-                  Flexible(child: _crearClienteCheckSur())
-                ],
-              ),
-              Divider(),
-              Text('LONGITUD'),
-              Divider(),
-              _longitudClinte(),
-              Row(
-                children: <Widget>[
-                  Text('Este'),
-                  Flexible(child: _crearClienteChecKEste()),
-                  Text('Oeste'),
-                  Flexible(child: _crearClienteCheckOeste()),
-                ],
+                // ),
+                // Text('LATITUD'),
+                // Divider(),
+                // _latitudClinte(),
+                // Row(
+                //   children: <Widget>[
+                //     Text('Norte'),
+                //     Flexible(child: _crearClinteCheckNorte()),
+                //     Text('Sur'),
+                //     Flexible(child: _crearClienteCheckSur())
+                //   ],
+                // ),
+                // Divider(),
+                // Text('LONGITUD'),
+                // Divider(),
+                // _longitudClinte(),
+                // Row(
+                //   children: <Widget>[
+                //     Text('Este'),
+                //     Flexible(child: _crearClienteChecKEste()),
+                //     Text('Oeste'),
+                //     Flexible(child: _crearClienteCheckOeste()),
+                // ],
               ),
               SizedBox(
                 height: 20,
@@ -279,6 +339,85 @@ class _NodosPageState extends State<NodosPage> {
           )
         ],
       ),
+    );
+  }
+
+  List<DropdownMenuItem<String>>? getOpcionesNodos() {
+    List<DropdownMenuItem<String>> lista = new List.of([]);
+    _nodosList.forEach((element) {
+      lista.add(DropdownMenuItem(
+        child: Text(element),
+        value: element,
+      ));
+    });
+    return lista;
+  }
+
+  Widget _crearDrowButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Selecionar Nodo',
+          style: TextStyle(fontStyle: FontStyle.italic),
+        ),
+        SizedBox(
+          width: 5,
+        ),
+        Flexible(
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            width: 175,
+            height: 50,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(15)),
+                border: Border.all(color: Colors.blueAccent, width: 2)),
+            child: DropdownButton(
+              style: TextStyle(fontSize: 15, color: Colors.black),
+              icon: Icon(
+                Icons.list_alt_sharp,
+                color: Colors.blueAccent,
+                size: 30,
+              ),
+              dropdownColor: Colors.blue[300],
+              value: _valorSelecionado,
+              items: getOpcionesNodos(),
+              onChanged: (String? opt) {
+                setState(() {
+                  _valorSelecionado = opt;
+
+                  if (opt == 'Nodo Uzhoc') {
+                    print('holaaaa iff');
+                    calculosLatutud();
+                    _calculosLongitud();
+                    altTxKte = 2985;
+                    altTxAntKte = 20;
+                    altTx.text = altTxKte.toString();
+                    altTxAnt.text = altTxAntKte.toString();
+                  } else {
+                    if (opt == 'Nodo Chocarsi') {
+                      print('holaaaa central');
+                      _calculosLatutudNodoChocarsi();
+                      _calculosLongitudNodoChocarsi();
+                      altTxKte = 2751;
+                      altTxAntKte = 20;
+                      altTx.text = altTxKte.toString();
+                      altTxAnt.text = altTxAntKte.toString();
+                    } else {
+                      _calculosLatutudNodoOficina();
+                      _calculosLongitudNodoOficina();
+                      altTxKte = 2690;
+                      altTxAntKte = 20;
+                      altTx.text = altTxKte.toString();
+                      altTxAnt.text = altTxAntKte.toString();
+                    }
+                  }
+                });
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -495,7 +634,7 @@ class _NodosPageState extends State<NodosPage> {
         Flexible(
           child: TextField(
             keyboardType: TextInputType.number,
-            controller: eleTx,
+            controller: altTx,
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20.0),
@@ -518,7 +657,7 @@ class _NodosPageState extends State<NodosPage> {
         Flexible(
           child: TextField(
             keyboardType: TextInputType.number,
-            controller: eleAntx,
+            controller: altTxAnt,
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20.0),
@@ -903,11 +1042,8 @@ class _NodosPageState extends State<NodosPage> {
   _crearBotonCancelar(BuildContext context) {
     return ElevatedButton(
         onPressed: () {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(content: calcularDatos());
-              }); //Navigator.pushNamed(context, 'inicio');
+          Navigator.pushNamed(context, 'inicio');
+          //Navigator.pushNamed(context, 'inicio');
         },
         child: Text('Cancelar'));
   }
@@ -924,9 +1060,10 @@ class _NodosPageState extends State<NodosPage> {
 
       calculosLatutud();
       _calculosLongitud();
-      _calculosLatutudCliente();
-      _calculosLongitudCliente();
-      _calculoDistancia();
+      // _calculosLatutudCliente();
+      //_calculosLongitudCliente();
+      //_calculoDistancia();
+      _calculoDistanciaUbi();
       _calcularAcimut();
       _elevacionNodo();
       _calculoPerdidaLbf();
@@ -935,58 +1072,134 @@ class _NodosPageState extends State<NodosPage> {
   }
 
   calculosLatutud() {
-    xtx = double.parse(horasLatitud.text) +
-        (double.parse(minutosLatitu.text) / 60) +
-        (double.parse(segundosLatit.text) / 3600);
+    horaslatitudkte = 2;
+    minutoslatitudkte = 54;
+    segudoslatitudkte = 6.34;
 
-    //cambio signo n/s xtxg
+    horasLatitud.text = horaslatitudkte.toString();
+    minutosLatitu.text = minutoslatitudkte.toString();
+    segundosLatit.text = segudoslatitudkte.toString();
+
+    xtx = horaslatitudkte! +
+        (minutoslatitudkte! / 60) +
+        (segudoslatitudkte! / 3600);
+
+    //print(xtx1);
+    print('00000000000');
     print(xtx);
-    xtxg = xtx;
+
+    xtxg = xtx! * pi / 180;
+
     if (_norte == true) {
       xtxg = xtxg!;
+      xtx1 = xtx;
     } else {
       xtxg = xtxg! * (-1);
+      xtx1 = xtx! * (-1);
     }
-
     print('hhhhhhhh latud');
     print(xtxg);
-
-    if (_norte == true) {
-      xtx = (xtx! * (pi)) / 180;
-    } else {
-      xtx = (xtx! * (-pi)) / 180;
-    }
-    //double totalLt = horasLt + minutosLt;
-    //sur, este negativos
+//
+    ////if (_norte == true) {
+    ////  xtx = (xtx! * (pi)) / 180;
+    ////} else {
+    //xtx = (xtx! * (-pi)) / 180;
+    ////}
+    ////double totalLt = horasLt + minutosLt;
+    ////sur, este negativos
     print('latitud');
     print('--------------');
 
     print(xtx);
+    //xtx = double.parse(horasLatitud.text) +
+    //    (double.parse(minutosLatitu.text) / 60) +
+    //    (double.parse(segundosLatit.text) / 3600);
+//
+    ////cambio signo n/s xtxg
+    //print(xtx);
+    //xtxg = xtx;
+    //if (_norte == true) {
+    //  xtxg = xtxg!;
+    //} else {
+    //  xtxg = xtxg! * (-1);
+    //}
+//
+    //print('hhhhhhhh latud');
+    //print(xtxg);
+//
+    //if (_norte == true) {
+    //  xtx = (xtx! * (pi)) / 180;
+    //} else {
+    //  xtx = (xtx! * (-pi)) / 180;
+    //}
+    ////double totalLt = horasLt + minutosLt;
+    ////sur, este negativos
+    //print('latitud');
+    //print('--------------');
+//
+    //print(xtx);
   }
 
   _calculosLongitud() {
-    ytx = double.parse(horasLongitud.text) +
-        (double.parse(minutosLongitud.text) / 60) +
-        (double.parse(segundosLongitud.text) / 3600);
+    horaslongitudkte = 78;
+    minutoslongitudkte = 52;
+    segundoslongitudkte = 14.83;
 
-    ytxg = ytx;
+    horasLongitud.text = horaslongitudkte.toString();
+    minutosLongitud.text = minutoslongitudkte.toString();
+    segundosLongitud.text = segundoslongitudkte.toString();
+
+    ytx = horaslongitudkte! +
+        (minutoslongitudkte! / 60) +
+        (segundoslongitudkte! / 3600);
+
+    ytxg = ytx! * pi / 180;
+    print('!!!!!!!!!!!!!!!!!!!!');
 
     if (_este == true) {
       ytxg = ytxg!;
+      ytx1 = ytx;
     } else {
       ytxg = ytxg! * (-1);
+      ytx1 = ytx! * (-1);
     }
-
     print('hhhhhhhh longitud');
     print(ytxg);
 
-    if (_este == true) {
-      ytx = (ytx! * (pi)) / 180;
-    } else {
-      ytx = (ytx! * (-pi)) / 180;
-    }
-    print('longitud');
-    print(ytx);
+    print('999999999999');
+//
+    print(xtxg);
+    print(ytxg);
+    ////if (_este == true) {
+    ////  ytx = (ytx! * (pi)) / 180;
+    ////} else {
+    ////  ytx = (ytx! * (-pi)) / 180;
+    ////}
+    //ytx = (ytx! * (-pi)) / 180;
+    //print('longitud');
+    //print(ytx);
+    //ytx = double.parse(horasLongitud.text) +
+    //    (double.parse(minutosLongitud.text) / 60) +
+    //    (double.parse(segundosLongitud.text) / 3600);
+//
+    //ytxg = ytx;
+//
+    //if (_este == true) {
+    //  ytxg = ytxg!;
+    //} else {
+    //  ytxg = ytxg! * (-1);
+    //}
+//
+    //print('hhhhhhhh longitud');
+    //print(ytxg);
+//
+    //if (_este == true) {
+    //  ytx = (ytx! * (pi)) / 180;
+    //} else {
+    //  ytx = (ytx! * (-pi)) / 180;
+    //}
+    //print('longitud');
+    //print(ytx);
   }
 
   _calculosLatutudCliente() {
@@ -1055,8 +1268,52 @@ class _NodosPageState extends State<NodosPage> {
     print(dGr);
   }
 
+  _calculoDistanciaUbi() {
+    print('##################33');
+    xrxg = double.parse(_latData);
+
+    xrx = (xrxg! * pi) / 180;
+    print(_latData);
+    print(xrx);
+    yrxg = double.parse(_longData);
+    print('long)');
+    print(yrxg);
+    yrx = yrxg! * pi / 180;
+    //print(_longData);
+    print(yrx);
+//
+    print('valores nodo');
+    print(xtxg);
+    print(ytxg);
+    print('vvvvvvvvvvvvvvvvvvvvvv');
+    print(xrx);
+    print(yrx);
+
+    d = 6378 *
+        acos(sin(xtxg!) * sin(xrx!) +
+            (cos(xtxg!) * cos(xrx!)) * cos(yrx! - ytxg!));
+
+    print('------distancia--------');
+    print(d);
+
+    respuestaDistancia.text = d.toString() + ' ' + 'km';
+
+    dGr = d! / 111.18;
+
+    print('*****************');
+    dGr = dGr! * pi / 180;
+
+    print('distancia grados.......');
+    print(dGr);
+
+    //pasar datos a grados
+  }
+
   _calcularAcimut() {
     // acimut trasmisor-receptor
+
+    // xrxg = xrx;
+    // yrxg = yrx;
 
     print('distacia original');
 
@@ -1070,8 +1327,8 @@ class _NodosPageState extends State<NodosPage> {
     print('distacia cambia 2');
     print(distancia);
 
-    atr = acos((sin(xrxg!) - cos(distancia) * sin(xtxg!)) /
-        (sin(distancia) * cos(xtxg!)));
+    atr = acos((sin(xrxg!) - cos(distancia) * sin(xtx1!)) /
+        (sin(distancia) * cos(xtx1!)));
 
     print('atr radianes');
     print('xtxg');
@@ -1087,7 +1344,7 @@ class _NodosPageState extends State<NodosPage> {
     print(atr);
 
     //acimut receptor-trasmisor
-    art = acos((sin(xtxg!) - cos(distancia) * sin(xrxg!)) /
+    art = acos((sin(xtx1!) - cos(distancia) * sin(xrxg!)) /
         (sin(distancia) * cos(xrxg!)));
     art = art! * 180 / pi;
     print('acimut art');
@@ -1155,19 +1412,41 @@ class _NodosPageState extends State<NodosPage> {
   }
 
   _elevacionNodo() {
-    //eleTx.text = eleTx.toString();
-    //eleAnt.text = eleAnt.toString();
+    altTxKte = double.parse(altTx.text);
+    print('altTxAntKte..-.-.-.-.');
+    print(altTxKte);
 
-    int h1 = int.parse(eleTx.text) + int.parse(eleAntx.text);
-    int h2 = int.parse(eleRx.text) + int.parse(eleAntRx.text);
+    altTxAntKte = double.parse(altTxAnt.text);
+    print('altTxAntKte..-.-.-.-.');
+    print(altTxAntKte);
 
-    int deltAltura = h1 - h2;
+    altRxKte = double.parse(eleRx.text);
+    print('altRxKte---------------------');
+    print(altRxKte);
+
+    altrxAntKte = double.parse(eleAntRx.text);
+
+    print('altrxAntKte--------------');
+    print(altrxAntKte);
+
+    double h1 = altTxKte! + altTxAntKte!;
+    print(h1);
+    double h2 = altRxKte! + altrxAntKte!;
+    print('h2----------------');
+    print(h2);
+
+    double deltAltura = h1 - h2;
     print('deltaAltura');
     print(deltAltura);
     print(d);
 
+    deltAltura = deltAltura / 1000;
+
     //calculo angulo elevacion
     double alpha = asin((deltAltura / 1000) / d!);
+
+    print('alpha----------------');
+    print(alpha);
 
     alpha = (alpha * 180) / pi;
 
@@ -1226,5 +1505,254 @@ class _NodosPageState extends State<NodosPage> {
     print('margenEnl');
 
     print(margenEnl);
+  }
+
+  _calculosLatutudNodoChocarsi() {
+    //final horasLatitud = TextEditingController();
+    //final minutosLatitu = TextEditingController();
+    //final segundosLatit = TextEditingController();
+//
+    //final horasLongitud = TextEditingController();
+    //final minutosLongitud = TextEditingController();
+    //final segundosLongitud = TextEditingController();
+
+    horaslatitudkte = 2;
+    minutoslatitudkte = 51;
+    segudoslatitudkte = 32.43;
+
+    horasLatitud.text = horaslatitudkte.toString();
+    minutosLatitu.text = minutoslatitudkte.toString();
+    segundosLatit.text = segudoslatitudkte.toString();
+
+    xtx = horaslatitudkte! +
+        (minutoslatitudkte! / 60) +
+        (segudoslatitudkte! / 3600);
+
+    print(xtx);
+
+    xtxg = xtx;
+
+    if (_sur == true) {
+      xtxg = xtxg!;
+    } else {
+      xtxg = xtxg! * (-1);
+    }
+    print('latud nodo Chocarsi');
+    print(xtxg);
+
+    //if (_norte == true) {
+    //  xtx = (xtx! * (pi)) / 180;
+    //} else {
+    xtx = (xtx! * (-pi)) / 180;
+    //}
+    //double totalLt = horasLt + minutosLt;
+    //sur, este negativos
+    print('latitud');
+    print('--------------');
+
+    print(xtx);
+  }
+
+  _calculosLatutudNodoOficina() {
+    //final horasLatitud = TextEditingController();
+    //final minutosLatitu = TextEditingController();
+    //final segundosLatit = TextEditingController();
+//
+    //final horasLongitud = TextEditingController();
+    //final minutosLongitud = TextEditingController();
+    //final segundosLongitud = TextEditingController();
+
+    horaslatitudkte = 2;
+    minutoslatitudkte = 53;
+    segudoslatitudkte = 18.91;
+
+    horasLatitud.text = horaslatitudkte.toString();
+    minutosLatitu.text = minutoslatitudkte.toString();
+    segundosLatit.text = segudoslatitudkte.toString();
+
+    xtx = horaslatitudkte! +
+        (minutoslatitudkte! / 60) +
+        (segudoslatitudkte! / 3600);
+
+    print(xtx);
+
+    xtxg = xtx;
+
+    if (_sur == true) {
+      xtxg = xtxg!;
+    } else {
+      xtxg = xtxg! * (-1);
+    }
+    print(' latud nodo Oficina');
+    print(xtxg);
+
+    //if (_norte == true) {
+    //  xtx = (xtx! * (pi)) / 180;
+    //} else {
+    xtx = (xtx! * (-pi)) / 180;
+    //}
+    //double totalLt = horasLt + minutosLt;
+    //sur, este negativos
+    print('latitud');
+    print('--------------');
+
+    print(xtx);
+  }
+
+  _calculosLongitudNodoOficina() {
+    horaslongitudkte = 78;
+    minutoslongitudkte = 52;
+    segundoslongitudkte = 38.74;
+
+    horasLongitud.text = horaslongitudkte.toString();
+    minutosLongitud.text = minutoslongitudkte.toString();
+    segundosLongitud.text = segundoslongitudkte.toString();
+
+    ytx = horaslongitudkte! +
+        (minutoslongitudkte! / 60) +
+        (segundoslongitudkte! / 3600);
+
+    ytxg = ytx;
+
+    if (_oeste == true) {
+      ytxg = ytxg!;
+    } else {
+      ytxg = ytxg! * (-1);
+    }
+    print('hhhhhhhh longitud');
+    print(ytxg);
+
+    //if (_este == true) {
+    //  ytx = (ytx! * (pi)) / 180;
+    //} else {
+    //  ytx = (ytx! * (-pi)) / 180;
+    //}
+    ytx = (ytx! * (-pi)) / 180;
+    print('longitud');
+    print(ytx);
+  }
+
+  _calculosLongitudNodoChocarsi() {
+    horaslongitudkte = 78;
+    minutoslongitudkte = 51;
+    segundoslongitudkte = 57.66;
+
+    horasLongitud.text = horaslongitudkte.toString();
+    minutosLongitud.text = minutoslongitudkte.toString();
+    segundosLongitud.text = segundoslongitudkte.toString();
+
+    ytx = horaslongitudkte! +
+        (minutoslongitudkte! / 60) +
+        (segundoslongitudkte! / 3600);
+
+    ytxg = ytx;
+
+    if (_oeste == true) {
+      ytxg = ytxg!;
+    } else {
+      ytxg = ytxg! * (-1);
+    }
+    print('longitud nodo Chocarsi');
+    print(ytxg);
+
+    //if (_este == true) {
+    //  ytx = (ytx! * (pi)) / 180;
+    //} else {
+    //  ytx = (ytx! * (-pi)) / 180;
+    //}
+    ytx = (ytx! * (-pi)) / 180;
+    print('longitud');
+    print(ytx);
+  }
+
+  Future<LocationData> _getLocation() async {
+    //LocationData _currentLocation;
+    //String _longData = '';
+    //String _latData = '';
+    //String _altitudData = '';
+    //var currentLocation = <String, double>{};
+    try {
+      _currentLocation = await location.getLocation();
+      _longData = _currentLocation!.longitude.toString();
+      _latData = _currentLocation!.latitude.toString();
+      _altitudData = _currentLocation!.altitude.toString();
+
+      ubialtudCli.text = _altitudData;
+      ubilatituCli.text = _latData;
+      ubilongitudCli.text = _longData;
+      eleRx.text = _altitudData;
+
+      print('--------------------');
+      print(_longData);
+      print(_latData);
+      print(_altitudData);
+
+      print('###############3');
+      print(_currentLocation);
+    } catch (e) {
+      _currentLocation = null!;
+    }
+    return _currentLocation!;
+  }
+
+  _ubicacion() {
+    return Row(
+      children: [
+        userLocation == null ? CircularProgressIndicator() : Text(''),
+        RaisedButton(
+          onPressed: () {
+            _getLocation().then((value) {
+              setState(() {
+                userLocation = value;
+              });
+            });
+          },
+          color: Colors.blue,
+          child: Text(
+            "Ubicación",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+        SizedBox(
+          width: 5,
+        ),
+        Flexible(
+          child: TextField(
+            controller: ubilatituCli,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 5,
+        ),
+        Flexible(
+          child: TextField(
+            controller: ubilongitudCli,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 5,
+        ),
+        Flexible(
+          child: TextField(
+            controller: ubialtudCli,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

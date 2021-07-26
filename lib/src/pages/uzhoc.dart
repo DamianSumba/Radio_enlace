@@ -147,28 +147,7 @@ class _UzhocPageState extends State<UzhocPage> {
                   fontSize: 20,
                 ),
               ),
-              Row(
-                children: [
-                  userLocation == null ? CircularProgressIndicator() : Text(''),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: RaisedButton(
-                      onPressed: () {
-                        _getLocation().then((value) {
-                          setState(() {
-                            userLocation = value;
-                          });
-                        });
-                      },
-                      color: Colors.blue,
-                      child: Text(
-                        "Get Location",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              ubicacion(),
               Divider(),
               Text('LATITUD'),
               Divider(),
@@ -280,6 +259,31 @@ class _UzhocPageState extends State<UzhocPage> {
           )
         ],
       ),
+    );
+  }
+
+  Row ubicacion() {
+    return Row(
+      children: [
+        userLocation == null ? CircularProgressIndicator() : Text(''),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: RaisedButton(
+            onPressed: () {
+              _getLocation().then((value) {
+                setState(() {
+                  userLocation = value;
+                });
+              });
+            },
+            color: Colors.blue,
+            child: Text(
+              "Get Location",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1328,9 +1332,21 @@ class _UzhocPageState extends State<UzhocPage> {
 
   Future<LocationData> _getLocation() async {
     LocationData _currentLocation;
+    String _longData = '';
+    String _latData = '';
+    String _altitudData = '';
     //var currentLocation = <String, double>{};
     try {
       _currentLocation = await location.getLocation();
+      _longData = _currentLocation.longitude.toString();
+      _latData = _currentLocation.latitude.toString();
+      _altitudData = _currentLocation.altitude.toString();
+
+      print('--------------------');
+      print(_longData);
+      print(_latData);
+      print(_altitudData);
+
       print('###############3');
       print(_currentLocation);
     } catch (e) {
